@@ -15,7 +15,6 @@
 * [Environment Variables](#environment-variables)
 * [Running](#running)
 * [Examples (curl)](#examples-curl)
-* [License](#license)
 
 ## 📝 Description
 
@@ -228,7 +227,3 @@ curl -X POST http://localhost:3000/transactions \
   -H 'Authorization: Bearer <TOKEN>' \
   -d '{"type":"sale","customerId":"cust_1","products":[{"productId":"prod_1","quantity":2,"price":50}],"totalAmount":100,"businessId":"biz_123"}'
 ```
-
-## 📜 License
-
-MIT © Kushagra Tiwari
