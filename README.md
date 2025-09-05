@@ -15,7 +15,6 @@
 * [Environment Variables](#environment-variables)
 * [Running](#running)
 * [Examples (curl)](#examples-curl)
-* [Testing](#testing)
 * [License](#license)
 
 ## 📝 Description
