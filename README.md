@@ -191,7 +191,7 @@ npm start
 ## Environment Variables
 
 ```
-PORT=3000
+PORT=9000
 MONGO_URI=mongodb://localhost:27017/inventory-db
 JWT_SECRET=your_jwt_secret_here
 ```
