@@ -209,10 +209,10 @@ POST http://localhost:9000/api/auth/register
 Content-Type: application/json
 
 {
-  "name": "Alice",
+  "username": "Alice",
   "email": "alice@example.com",
-  "password": "secret",
-  "businessId": "biz_123"
+  "password": "secret123",
+  "businessName": "Alice Supplies"
 }
 
 ---
@@ -223,7 +223,7 @@ Content-Type: application/json
 
 {
   "email": "alice@example.com",
-  "password": "secret"
+  "password": "secret123"
 }
 
 ---
@@ -245,11 +245,11 @@ Authorization: Bearer {{token}}
 
 {
   "name": "Widget",
-  "description": "Test item",
+  "description": "High-quality widget",
   "price": 50,
-  "stock": 10,
+  "stock": 100,
   "category": "Tools",
-  "businessId": "biz_123"
+  "businessId": "<USER_ID>"
 }
 
 ---
@@ -292,9 +292,9 @@ Authorization: Bearer {{token}}
   "name": "Bob",
   "phone": "1234567890",
   "email": "bob@example.com",
-  "address": "Street 1",
+  "address": "123 Street Name",
   "type": "customer",
-  "businessId": "biz_123"
+  "businessId": "<USER_ID>"
 }
 
 ---
@@ -333,16 +333,16 @@ Authorization: Bearer {{token}}
 
 {
   "type": "sale",
-  "customerId": "{{CUSTOMER_ID}}",
+  "customerId": "<CONTACT_ID>",
   "products": [
     {
-      "productId": "{{PRODUCT_ID}}",
+      "productId": "<PRODUCT_ID>",
       "quantity": 2,
       "price": 50
     }
   ],
   "totalAmount": 100,
-  "businessId": "biz_123"
+  "businessId": "<USER_ID>"
 }
 
 ---
@@ -354,16 +354,16 @@ Authorization: Bearer {{token}}
 
 {
   "type": "purchase",
-  "vendorId": "{{VENDOR_ID}}",
+  "vendorId": "<CONTACT_ID>",
   "products": [
     {
-      "productId": "{{PRODUCT_ID}}",
+      "productId": "<PRODUCT_ID>",
       "quantity": 5,
       "price": 40
     }
   ],
   "totalAmount": 200,
-  "businessId": "biz_123"
+  "businessId": "<USER_ID>"
 }
 
 ---
