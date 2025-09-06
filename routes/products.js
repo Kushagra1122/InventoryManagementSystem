@@ -21,7 +21,7 @@ router.use(protect);
 // Routes
 router.get('/', getProducts);
 router.post('/', productValidation, handleValidationErrors, createProduct);
-router.put('/:id', productValidation, handleValidationErrors, updateProduct);
+router.put('/:id', handleValidationErrors, updateProduct);
 router.delete('/:id', deleteProduct);
 
 module.exports = router;

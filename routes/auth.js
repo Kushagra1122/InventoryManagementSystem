@@ -14,7 +14,7 @@ const registerValidation = [
 ];
 
 const loginValidation = [
-    body('username').notEmpty().withMessage('Username or email is required'),
+    body('email').notEmpty().withMessage('Email is required'),
     body('password').notEmpty().withMessage('Password is required')
 ];
 
