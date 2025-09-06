@@ -1,64 +1,74 @@
 # Inventory & Billing Backend
 
-> A lightweight and scalable backend system to manage **authentication, products, contacts, transactions, and reports** for small businesses.
+---
+
+## Table of Contents
+
+* [Overview](#overview)
+* [Why this project](#why-this-project)
+* [Features](#features)
+* [Architecture & Project Structure](#architecture--project-structure)
+* [Data Models (Schemas)](#data-models-schemas)
+* [API Reference (quick)](#api-reference-quick)
+* [Setup & Running](#setup--running)
+* [Environment Variables](#environment-variables)
+* [Usage Examples](#usage-examples)
+* [Security & Best Practices](#security--best-practices)
 
 ---
 
-## 📑 Table of Contents
+## Overview
 
-* [Description](#description)
-* [Features](#features)
-* [Project Structure](#project-structure)
-* [Schemas](#schemas)
-* [API Endpoints](#api-endpoints)
-* [Installation](#installation)
-* [Environment Variables](#environment-variables)
-* [Running](#running)
-* [Examples (curl)](#examples-curl)
+This repository contains a **scalable Node.js + Express** backend built for small businesses to manage products, contacts (customers/vendors), transactions (sales & purchases) and reports. It focuses on clarity, good defaults, and modularity so you can plug it into a web or mobile frontend quickly.
 
-## 📝 Description
+---
 
-This backend application offers a **complete inventory and billing solution** tailored for small businesses. With secure **JWT-based authentication**, **stock-aware product handling**, **transaction tracking**, and **real-time reports**, it can serve as the foundation for a POS or ERP system.
+## Why this project
 
-## ✨ Features
+* Minimal, production-ready patterns (JWT auth, role-based checks, database separation by `businessId`).
+* Stock-aware transactions (sales decrement stock; purchases increment stock).
+* Clean separation of controllers, models and routes for easy extension.
 
-* 🔐 **Authentication** — JWT-based login & session handling
-* 📦 **Product Management** — CRUD, stock updates, categories
-* 👥 **Contacts** — Customers & Vendors with full CRUD
-* 💳 **Transactions** — Record sales/purchases, auto stock adjustment
-* 📊 **Reports** — Inventory, transactions, contact history
-* ⚡ **Scalable** — Modular structure ready for business growth
+---
 
-## 📂 Project Structure
+## Features
+
+* 🔐 JWT-based authentication (register, login)
+* 📦 Full product CRUD with categories and stock counts
+* 👥 Contact management (customers & vendors)
+* 💳 Transaction handling (sales & purchases) with automatic stock adjustment
+* 📊 Basic reports: inventory, transactions and contact histories
+* ✅ Role support (`admin`, `user`) and business scoping via `businessId`
+
+---
+
+## Architecture & Project Structure
 
 ```
-├── index.js                # App entry
-├── config/                 # DB connection
-│   └── database.js         
-├── controllers/            # Request handlers
+├── index.js                # App entry point
+├── config/                 # DB & env configuration
+│   └── database.js         # Mongo connection
+├── controllers/            # Route handlers
 │   ├── authController.js
 │   ├── productController.js
 │   ├── contactController.js
 │   ├── transactionController.js
 │   └── reportController.js
-├── middleware/             # Auth, validation, error handlers
-│   ├── auth.js
-│   └── validation.js
-├── models/                 # Mongoose models
+├── middleware/
+│   ├── auth.js             # JWT auth + role checks
+│   └── validation.js       # Request body validation
+├── models/                 # Mongoose schemas
 │   ├── User.js
 │   ├── Product.js
 │   ├── Contact.js
 │   └── Transaction.js
-├── routes/                 # API routes
-│   ├── auth.js
-│   ├── products.js
-│   ├── contacts.js
-│   ├── transactions.js
-│   └── reports.js
+├── routes/                 # API routes (one file per resource)
 └── README.md
 ```
 
-## 🗂️ Schemas
+---
+
+## Data Models (Schemas)
 
 ### User
 
@@ -66,9 +76,9 @@ This backend application offers a **complete inventory and billing solution** ta
 {
   name: String,
   email: { type: String, unique: true },
-  password: String, // hashed
+  password: String, // hashed (bcrypt)
   businessId: String,
-  role: String // e.g., admin, user
+  role: { type: String, default: 'user' } // admin | user
 }
 ```
 
@@ -79,13 +89,14 @@ This backend application offers a **complete inventory and billing solution** ta
   name: String,
   description: String,
   price: Number,
-  stock: Number,
+  stock: { type: Number, default: 0 },
   category: String,
-  businessId: String
+  businessId: String,
+  sku?: String
 }
 ```
 
-### Contact (Customer/Vendor)
+### Contact
 
 ```js
 {
@@ -103,106 +114,109 @@ This backend application offers a **complete inventory and billing solution** ta
 ```js
 {
   type: 'sale' | 'purchase',
-  customerId?: String,
-  vendorId?: String,
+  contactId?: String,          // customerId or vendorId
   products: [
     { productId: String, quantity: Number, price: Number }
   ],
   totalAmount: Number,
-  date: Date,
-  businessId: String
+  date: { type: Date, default: Date.now },
+  businessId: String,
+  meta: Object                 // optional extra fields (invoice#, payment method)
 }
 ```
 
-## 🚀 API Endpoints
+---
 
-### Authentication
+## API Reference (quick)
 
-* `POST /register` — Register a new user
-* `POST /login` — Login, returns JWT
-* `GET /logout` — Logout (client-side removal or token blacklist)
+**Authentication**
 
-### Products
+* `POST /register` — create user (returns user without password)
+* `POST /login` — returns `{ token }` (JWT)
+* `GET /me` — get logged-in user (protected)
 
-* `GET /products` — List products (with `?q=search&category=...`)
-* `POST /products` — Create product
-* `PUT /products/:id` — Update product
-* `DELETE /products/:id` — Delete product
+**Products**
 
-### Contacts
+* `GET /products` — list (supports `?q=&category=&page=&limit=`)
+* `GET /products/:id` — single product
+* `POST /products` — create (protected)
+* `PUT /products/:id` — update
+* `DELETE /products/:id` — remove
 
-* `GET /contacts` — List contacts (filter by type)
-* `POST /contacts` — Create contact
-* `PUT /contacts/:id` — Update contact
-* `DELETE /contacts/:id` — Delete contact
+**Contacts**
 
-### Transactions
+* `GET /contacts` — list (filter `?type=customer`)
+* `POST /contacts` — create
+* `PUT /contacts/:id` — update
+* `DELETE /contacts/:id` — delete
 
-* `GET /transactions` — List transactions (filters: date, type)
-* `POST /transactions` — Create transaction (sale or purchase)
+**Transactions**
 
-  * On `sale`: stock decreases
-  * On `purchase`: stock increases
+* `GET /transactions` — list (filters: `?type=&from=&to=&contactId=`)
+* `POST /transactions` — create sale or purchase (atomic stock update)
 
-### Reports
+**Reports**
 
-* `GET /reports/inventory` — Current stock levels
-* `GET /reports/transactions` — Filterable transaction list
-* `GET /reports/contacts/:id` — History for a customer/vendor
+* `GET /reports/inventory` — aggregated stock levels
+* `GET /reports/transactions` — filtered transactions with totals
+* `GET /reports/contacts/:id` — transactions for a contact
 
-## ⚙️ Installation
+> All protected routes require `Authorization: Bearer <JWT>` header.
 
-1. Clone the repository:
+---
+
+## Setup & Running
+
+1. Clone & install
 
 ```bash
 git clone https://github.com/Kushagra1122/InventoryManagementSystem.git
 cd InventoryManagementSystem
-```
-
-2. Install dependencies:
-
-```bash
 npm install
 ```
 
-3. Configure environment:
+2. Copy env and set values
 
 ```bash
 cp .env.example .env
-# then edit .env
+# edit .env accordingly
 ```
 
-## 🔑 Environment Variables
-
-Example `.env`:
-
-```
-PORT=3000
-MONGO_URI=mongodb://localhost:27017/inventory-db
-JWT_SECRET=your_jwt_secret
-```
-
-## 🏃 Running
-
-Development:
+3. Start (development)
 
 ```bash
 npm run dev
 ```
 
-Production:
+4. Start (production)
 
 ```bash
 npm start
 ```
 
-## 📌 Examples (curl)
+---
 
-##############################
+## Environment Variables
+
+```
+PORT=3000
+MONGO_URI=mongodb://localhost:27017/inventory-db
+JWT_SECRET=your_jwt_secret_here
+```
+
+---
+
+## Usage Examples
+
+\##############################
+
 # 🔑 AUTHENTICATION
-##############################
 
-# Register a new user
+\##############################
+
+**Register**
+
+```bash
 POST http://localhost:3000/register
 Content-Type: application/json
 
@@ -212,10 +226,11 @@ Content-Type: application/json
   "password": "secret",
   "businessId": "biz_123"
 }
+```
 
----
+**Login**
 
-# Login to get JWT token
+```bash
 POST http://localhost:3000/login
 Content-Type: application/json
 
@@ -223,20 +238,26 @@ Content-Type: application/json
   "email": "alice@example.com",
   "password": "secret"
 }
+```
 
 ---
 
-##############################
-# 📦 PRODUCTS
-##############################
+\##############################
 
-# Get all products
+# 📦 PRODUCTS
+
+\##############################
+
+**Get all products**
+
+```bash
 GET http://localhost:3000/products
 Authorization: Bearer {{token}}
+```
 
----
+**Create a new product**
 
-# Create a new product
+```bash
 POST http://localhost:3000/products
 Content-Type: application/json
 Authorization: Bearer {{token}}
@@ -249,10 +270,11 @@ Authorization: Bearer {{token}}
   "category": "Tools",
   "businessId": "biz_123"
 }
+```
 
----
+**Update a product**
 
-# Update a product
+```bash
 PUT http://localhost:3000/products/{{PRODUCT_ID}}
 Content-Type: application/json
 Authorization: Bearer {{token}}
@@ -262,26 +284,33 @@ Authorization: Bearer {{token}}
   "price": 75,
   "stock": 15
 }
+```
 
----
+**Delete a product**
 
-# Delete a product
+```bash
 DELETE http://localhost:3000/products/{{PRODUCT_ID}}
 Authorization: Bearer {{token}}
+```
 
 ---
 
-##############################
-# 👥 CONTACTS (CUSTOMERS / VENDORS)
-##############################
+\##############################
 
-# Get all contacts
+# 👥 CONTACTS (CUSTOMERS / VENDORS)
+
+\##############################
+
+**Get all contacts**
+
+```bash
 GET http://localhost:3000/contacts
 Authorization: Bearer {{token}}
+```
 
----
+**Create a new contact**
 
-# Create a new contact
+```bash
 POST http://localhost:3000/contacts
 Content-Type: application/json
 Authorization: Bearer {{token}}
@@ -294,10 +323,11 @@ Authorization: Bearer {{token}}
   "type": "customer",
   "businessId": "biz_123"
 }
+```
 
----
+**Update a contact**
 
-# Update a contact
+```bash
 PUT http://localhost:3000/contacts/{{CONTACT_ID}}
 Content-Type: application/json
 Authorization: Bearer {{token}}
@@ -305,26 +335,33 @@ Authorization: Bearer {{token}}
 {
   "phone": "9876543210"
 }
+```
 
----
+**Delete a contact**
 
-# Delete a contact
+```bash
 DELETE http://localhost:3000/contacts/{{CONTACT_ID}}
 Authorization: Bearer {{token}}
+```
 
 ---
 
-##############################
-# 💰 TRANSACTIONS
-##############################
+\##############################
 
-# Get all transactions
+# 💰 TRANSACTIONS
+
+\##############################
+
+**Get all transactions**
+
+```bash
 GET http://localhost:3000/transactions
 Authorization: Bearer {{token}}
+```
 
----
+**Create a sale transaction (decreases stock)**
 
-# Create a sale transaction (decreases stock)
+```bash
 POST http://localhost:3000/transactions
 Content-Type: application/json
 Authorization: Bearer {{token}}
@@ -342,10 +379,11 @@ Authorization: Bearer {{token}}
   "totalAmount": 100,
   "businessId": "biz_123"
 }
+```
 
----
+**Create a purchase transaction (increases stock)**
 
-# Create a purchase transaction (increases stock)
+```bash
 POST http://localhost:3000/transactions
 Content-Type: application/json
 Authorization: Bearer {{token}}
@@ -363,26 +401,45 @@ Authorization: Bearer {{token}}
   "totalAmount": 200,
   "businessId": "biz_123"
 }
+```
 
 ---
 
-##############################
-# 📊 REPORTS
-##############################
+\##############################
 
-# Get current inventory levels
+# 📊 REPORTS
+
+\##############################
+
+**Get current inventory levels**
+
+```bash
 GET http://localhost:3000/reports/inventory
 Authorization: Bearer {{token}}
+```
 
----
+**Get all transactions with filters**
 
-# Get all transactions with filters
+```bash
 GET http://localhost:3000/reports/transactions
 Authorization: Bearer {{token}}
+```
+
+**Get transaction history for a specific contact**
+
+```bash
+GET http://localhost:3000/reports/contacts/{{CONTACT_ID}}
+Authorization: Bearer {{token}}
+```
 
 ---
 
-# Get transaction history for a specific contact
-GET http://localhost:3000/reports/contacts/{{CONTACT_ID}}
-Authorization: Bearer {{token}}
+## Security & Best Practices
 
+* **Hash passwords** with bcrypt before saving.
+* **Never** return password fields in API responses.
+* **Validate and sanitize** user input (use a library like Joi or express-validator).
+* Use **rate limiting**, **CORS** restrictions and **helmet** for basic hardening.
+* Consider token revocation / blacklisting for logout if needed.
+
+---
