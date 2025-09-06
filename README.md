@@ -198,32 +198,191 @@ npm start
 
 ## 📌 Examples (curl)
 
-Register:
+##############################
+# 🔑 AUTHENTICATION
+##############################
 
-```bash
-curl -X POST http://localhost:3000/register -H 'Content-Type: application/json' -d '{"name":"Alice","email":"a@example.com","password":"secret","businessId":"biz_123"}'
-```
+# Register a new user
+POST http://localhost:3000/register
+Content-Type: application/json
 
-Login:
+{
+  "name": "Alice",
+  "email": "alice@example.com",
+  "password": "secret",
+  "businessId": "biz_123"
+}
 
-```bash
-curl -X POST http://localhost:3000/login -H 'Content-Type: application/json' -d '{"email":"a@example.com","password":"secret"}'
-```
+---
 
-Create product (requires Bearer token):
+# Login to get JWT token
+POST http://localhost:3000/login
+Content-Type: application/json
 
-```bash
-curl -X POST http://localhost:3000/products \
-  -H 'Content-Type: application/json' \
-  -H 'Authorization: Bearer <TOKEN>' \
-  -d '{"name":"Widget","price":99.99,"stock":10,"businessId":"biz_123"}'
-```
+{
+  "email": "alice@example.com",
+  "password": "secret"
+}
 
-Create sale transaction:
+---
 
-```bash
-curl -X POST http://localhost:3000/transactions \
-  -H 'Content-Type: application/json' \
-  -H 'Authorization: Bearer <TOKEN>' \
-  -d '{"type":"sale","customerId":"cust_1","products":[{"productId":"prod_1","quantity":2,"price":50}],"totalAmount":100,"businessId":"biz_123"}'
-```
+##############################
+# 📦 PRODUCTS
+##############################
+
+# Get all products
+GET http://localhost:3000/products
+Authorization: Bearer {{token}}
+
+---
+
+# Create a new product
+POST http://localhost:3000/products
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "name": "Widget",
+  "description": "Test item",
+  "price": 50,
+  "stock": 10,
+  "category": "Tools",
+  "businessId": "biz_123"
+}
+
+---
+
+# Update a product
+PUT http://localhost:3000/products/{{PRODUCT_ID}}
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "name": "Updated Widget",
+  "price": 75,
+  "stock": 15
+}
+
+---
+
+# Delete a product
+DELETE http://localhost:3000/products/{{PRODUCT_ID}}
+Authorization: Bearer {{token}}
+
+---
+
+##############################
+# 👥 CONTACTS (CUSTOMERS / VENDORS)
+##############################
+
+# Get all contacts
+GET http://localhost:3000/contacts
+Authorization: Bearer {{token}}
+
+---
+
+# Create a new contact
+POST http://localhost:3000/contacts
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "name": "Bob",
+  "phone": "1234567890",
+  "email": "bob@example.com",
+  "address": "Street 1",
+  "type": "customer",
+  "businessId": "biz_123"
+}
+
+---
+
+# Update a contact
+PUT http://localhost:3000/contacts/{{CONTACT_ID}}
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "phone": "9876543210"
+}
+
+---
+
+# Delete a contact
+DELETE http://localhost:3000/contacts/{{CONTACT_ID}}
+Authorization: Bearer {{token}}
+
+---
+
+##############################
+# 💰 TRANSACTIONS
+##############################
+
+# Get all transactions
+GET http://localhost:3000/transactions
+Authorization: Bearer {{token}}
+
+---
+
+# Create a sale transaction (decreases stock)
+POST http://localhost:3000/transactions
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "type": "sale",
+  "customerId": "{{CUSTOMER_ID}}",
+  "products": [
+    {
+      "productId": "{{PRODUCT_ID}}",
+      "quantity": 2,
+      "price": 50
+    }
+  ],
+  "totalAmount": 100,
+  "businessId": "biz_123"
+}
+
+---
+
+# Create a purchase transaction (increases stock)
+POST http://localhost:3000/transactions
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "type": "purchase",
+  "vendorId": "{{VENDOR_ID}}",
+  "products": [
+    {
+      "productId": "{{PRODUCT_ID}}",
+      "quantity": 5,
+      "price": 40
+    }
+  ],
+  "totalAmount": 200,
+  "businessId": "biz_123"
+}
+
+---
+
+##############################
+# 📊 REPORTS
+##############################
+
+# Get current inventory levels
+GET http://localhost:3000/reports/inventory
+Authorization: Bearer {{token}}
+
+---
+
+# Get all transactions with filters
+GET http://localhost:3000/reports/transactions
+Authorization: Bearer {{token}}
+
+---
+
+# Get transaction history for a specific contact
+GET http://localhost:3000/reports/contacts/{{CONTACT_ID}}
+Authorization: Bearer {{token}}
+
