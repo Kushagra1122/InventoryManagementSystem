@@ -127,44 +127,36 @@ This repository contains a **scalable Node.js + Express** backend built for smal
 
 ---
 
-## API Reference (quick)
+## 📌 API Reference (Quick)
 
-**Authentication**
+### 🔑 Authentication
+- `POST /api/auth/register` — create user (returns user without password)  
+- `POST /api/auth/login` — returns `{ token }` (JWT)  
+- `GET /api/auth/logout` — logout  
 
-* `POST /register` — create user (returns user without password)
-* `POST /login` — returns `{ token }` (JWT)
-* `GET /me` — get logged-in user (protected)
+### 📦 Products
+- `GET /api/products/` — list (supports `?q=&category=&page=&limit=`)  
+- `POST /api/products/` — create (protected)  
+- `PUT /api/products/:id` — update  
+- `DELETE /api/products/:id` — remove  
 
-**Products**
+### 👥 Contacts
+- `GET /api/contacts` — list (filter `?type=customer`)  
+- `POST /api/contacts` — create  
+- `PUT /api/contacts/:id` — update  
+- `DELETE /api/contacts/:id` — delete  
 
-* `GET /products` — list (supports `?q=&category=&page=&limit=`)
-* `GET /products/:id` — single product
-* `POST /products` — create (protected)
-* `PUT /products/:id` — update
-* `DELETE /products/:id` — remove
+### 💰 Transactions
+- `GET /api/transactions` — list (filters: `?type=&from=&to=&contactId=`)  
+- `POST /api/transactions` — create sale or purchase (atomic stock update)  
 
-**Contacts**
+### 📊 Reports
+- `GET /api/reports/inventory` — aggregated stock levels  
+- `GET /api/reports/transactions` — filtered transactions with totals  
 
-* `GET /contacts` — list (filter `?type=customer`)
-* `POST /contacts` — create
-* `PUT /contacts/:id` — update
-* `DELETE /contacts/:id` — delete
-
-**Transactions**
-
-* `GET /transactions` — list (filters: `?type=&from=&to=&contactId=`)
-* `POST /transactions` — create sale or purchase (atomic stock update)
-
-**Reports**
-
-* `GET /reports/inventory` — aggregated stock levels
-* `GET /reports/transactions` — filtered transactions with totals
-* `GET /reports/contacts/:id` — transactions for a contact
-
-> All protected routes require `Authorization: Bearer <JWT>` header.
+> ⚠️ All protected routes require `Authorization: Bearer <JWT>` header.
 
 ---
-
 ## Setup & Running
 
 1. Clone & install
@@ -208,16 +200,12 @@ JWT_SECRET=your_jwt_secret_here
 
 ## Usage Examples
 
-\##############################
-
+##############################
 # 🔑 AUTHENTICATION
+##############################
 
-\##############################
-
-**Register**
-
-```bash
-POST http://localhost:3000/register
+# Register a new user
+POST http://localhost:9000/api/auth/register
 Content-Type: application/json
 
 {
@@ -226,39 +214,32 @@ Content-Type: application/json
   "password": "secret",
   "businessId": "biz_123"
 }
-```
 
-**Login**
+---
 
-```bash
-POST http://localhost:3000/login
+# Login to get JWT token
+POST http://localhost:9000/api/auth/login
 Content-Type: application/json
 
 {
   "email": "alice@example.com",
   "password": "secret"
 }
-```
 
 ---
 
-\##############################
-
+##############################
 # 📦 PRODUCTS
+##############################
 
-\##############################
-
-**Get all products**
-
-```bash
-GET http://localhost:3000/products
+# Get all products
+GET http://localhost:9000/api/products
 Authorization: Bearer {{token}}
-```
 
-**Create a new product**
+---
 
-```bash
-POST http://localhost:3000/products
+# Create a new product
+POST http://localhost:9000/api/products
 Content-Type: application/json
 Authorization: Bearer {{token}}
 
@@ -270,12 +251,11 @@ Authorization: Bearer {{token}}
   "category": "Tools",
   "businessId": "biz_123"
 }
-```
 
-**Update a product**
+---
 
-```bash
-PUT http://localhost:3000/products/{{PRODUCT_ID}}
+# Update a product
+PUT http://localhost:9000/api/products/{{PRODUCT_ID}}
 Content-Type: application/json
 Authorization: Bearer {{token}}
 
@@ -284,34 +264,27 @@ Authorization: Bearer {{token}}
   "price": 75,
   "stock": 15
 }
-```
-
-**Delete a product**
-
-```bash
-DELETE http://localhost:3000/products/{{PRODUCT_ID}}
-Authorization: Bearer {{token}}
-```
 
 ---
 
-\##############################
-
-# 👥 CONTACTS (CUSTOMERS / VENDORS)
-
-\##############################
-
-**Get all contacts**
-
-```bash
-GET http://localhost:3000/contacts
+# Delete a product
+DELETE http://localhost:9000/api/products/{{PRODUCT_ID}}
 Authorization: Bearer {{token}}
-```
 
-**Create a new contact**
+---
 
-```bash
-POST http://localhost:3000/contacts
+##############################
+# 👥 CONTACTS (CUSTOMERS / VENDORS)
+##############################
+
+# Get all contacts
+GET http://localhost:9000/api/contacts
+Authorization: Bearer {{token}}
+
+---
+
+# Create a new contact
+POST http://localhost:9000/api/contacts
 Content-Type: application/json
 Authorization: Bearer {{token}}
 
@@ -323,46 +296,38 @@ Authorization: Bearer {{token}}
   "type": "customer",
   "businessId": "biz_123"
 }
-```
 
-**Update a contact**
+---
 
-```bash
-PUT http://localhost:3000/contacts/{{CONTACT_ID}}
+# Update a contact
+PUT http://localhost:9000/api/contacts/{{CONTACT_ID}}
 Content-Type: application/json
 Authorization: Bearer {{token}}
 
 {
   "phone": "9876543210"
 }
-```
-
-**Delete a contact**
-
-```bash
-DELETE http://localhost:3000/contacts/{{CONTACT_ID}}
-Authorization: Bearer {{token}}
-```
 
 ---
 
-\##############################
-
-# 💰 TRANSACTIONS
-
-\##############################
-
-**Get all transactions**
-
-```bash
-GET http://localhost:3000/transactions
+# Delete a contact
+DELETE http://localhost:9000/api/contacts/{{CONTACT_ID}}
 Authorization: Bearer {{token}}
-```
 
-**Create a sale transaction (decreases stock)**
+---
 
-```bash
-POST http://localhost:3000/transactions
+##############################
+# 💰 TRANSACTIONS
+##############################
+
+# Get all transactions
+GET http://localhost:9000/api/transactions
+Authorization: Bearer {{token}}
+
+---
+
+# Create a sale transaction (decreases stock)
+POST http://localhost:9000/api/transactions
 Content-Type: application/json
 Authorization: Bearer {{token}}
 
@@ -379,12 +344,11 @@ Authorization: Bearer {{token}}
   "totalAmount": 100,
   "businessId": "biz_123"
 }
-```
 
-**Create a purchase transaction (increases stock)**
+---
 
-```bash
-POST http://localhost:3000/transactions
+# Create a purchase transaction (increases stock)
+POST http://localhost:9000/api/transactions
 Content-Type: application/json
 Authorization: Bearer {{token}}
 
@@ -401,36 +365,22 @@ Authorization: Bearer {{token}}
   "totalAmount": 200,
   "businessId": "biz_123"
 }
-```
 
 ---
 
-\##############################
-
+##############################
 # 📊 REPORTS
+##############################
 
-\##############################
-
-**Get current inventory levels**
-
-```bash
-GET http://localhost:3000/reports/inventory
+# Get current inventory levels
+GET http://localhost:9000/api/reports/inventory
 Authorization: Bearer {{token}}
-```
 
-**Get all transactions with filters**
+---
 
-```bash
-GET http://localhost:3000/reports/transactions
+# Get all transactions with filters
+GET http://localhost:9000/api/reports/transactions
 Authorization: Bearer {{token}}
-```
-
-**Get transaction history for a specific contact**
-
-```bash
-GET http://localhost:3000/reports/contacts/{{CONTACT_ID}}
-Authorization: Bearer {{token}}
-```
 
 ---
 
